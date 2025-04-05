@@ -1,24 +1,22 @@
 import sys
 import copy
 
-DIRECTIONS = [(-1, -1), (1, 1), (1, -1), (-1, 1)]
+DIRECTIONS = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+COLS, ROWS = 5, 6
 
 def read_board():
     lines = sys.stdin.read().strip().splitlines()
     board = [line.strip().split() for line in lines]
-    rows = len(board)
-    cols = len(board[0]) if board else 0
-    return board, rows, cols
+    return board
 
 def print_board(board):
     for row in board:
         print(' '.join(row))
-    print()
 
 def get_opponent(player):
     return 'W' if player == 'B' else 'B'
 
-def generate_moves(board, player, ROWS, COLS):
+def generate_moves(board, player):
     moves = []
     for r in range(ROWS):
         for c in range(COLS):
@@ -37,21 +35,21 @@ def apply_move(board, move):
     return new_board
 
 
-# różnica pionków
+# pawn difference
 def heuristic_B_1(board, player):  
     opp = get_opponent(player)
     return sum(row.count(player) for row in board) - sum(row.count(opp) for row in board)
 
-# różnica możliwych ruchów
+# difference of possible moves
 def heuristic_B_2(board, player):
     opp = get_opponent(player)
     return len(generate_moves(board, player)) - len(generate_moves(board, opp))
 
-# liczba możliwych bic
+# number of possible bics
 def heuristic_B_3(board, player):  
     return len(generate_moves(board, player))
 
-# liczba bezpiecznych pionków
+# number of safe pawns
 def heuristic_W_1(board, player):
     opp = get_opponent(player)
     safe = 0
@@ -68,12 +66,12 @@ def heuristic_W_1(board, player):
                     safe += 1
     return safe
 
-# minimalizacja ruchów przeciwnika
+#minimizing opponent's movements
 def heuristic_W_2(board, player):
     opp = get_opponent(player)
     return -len(generate_moves(board, opp))
 
-# kontrola centrum
+# center control
 def heuristic_W_3(board, player):
     center_rows = [len(board)//2 - 1, len(board)//2]
     center_cols = [len(board[0])//2 - 1, len(board[0])//2]
@@ -101,9 +99,25 @@ HEURISTICS = {
     }
 }
 
+def choose_adaptive_heuristic(board, player):
+    total_pieces = sum(row.count('B') + row.count('W') for row in board)
 
-def minimax(board, depth, maximizing_player, player, heuristic, ROWS, COLS):
-    moves = generate_moves(board, player, ROWS, COLS)
+    # Early game
+    if total_pieces > 20:
+        chosen = '1'
+    # Mid game
+    elif total_pieces > 10:
+        chosen = '2'
+    # Late game
+    else:
+        chosen = '3'
+
+    return HEURISTICS[player][chosen]
+
+
+
+def minimax(board, depth, maximizing_player, player, heuristic):
+    moves = generate_moves(board, player)
     if depth == 0 or not moves:
         return heuristic(board, player), None
 
@@ -113,7 +127,7 @@ def minimax(board, depth, maximizing_player, player, heuristic, ROWS, COLS):
         max_eval = float('-inf')
         for move in moves:
             new_board = apply_move(board, move)
-            eval, _ = minimax(new_board, depth - 1, False, get_opponent(player), heuristic, ROWS, COLS)
+            eval, _ = minimax(new_board, depth - 1, False, get_opponent(player), heuristic)
             if eval > max_eval:
                 max_eval = eval
                 best_move = move
@@ -122,15 +136,15 @@ def minimax(board, depth, maximizing_player, player, heuristic, ROWS, COLS):
         min_eval = float('inf')
         for move in moves:
             new_board = apply_move(board, move)
-            eval, _ = minimax(new_board, depth - 1, True, get_opponent(player), heuristic, ROWS, COLS)
+            eval, _ = minimax(new_board, depth - 1, True, get_opponent(player), heuristic)
             if eval < min_eval:
                 min_eval = eval
                 best_move = move
         return min_eval, best_move
 
 
-def alphabeta(board, depth, maximizing_player, alpha, beta, player, heuristic, ROWS, COLS):
-    moves = generate_moves(board, player, ROWS, COLS)
+def alphabeta(board, depth, maximizing_player, alpha, beta, player, heuristic):
+    moves = generate_moves(board, player)
     if depth == 0 or not moves:
         return heuristic(board, player), None
 
@@ -140,7 +154,7 @@ def alphabeta(board, depth, maximizing_player, alpha, beta, player, heuristic, R
         max_eval = float('-inf')
         for move in moves:
             new_board = apply_move(board, move)
-            eval, _ = alphabeta(new_board, depth - 1, False, alpha, beta, get_opponent(player), heuristic, ROWS, COLS)
+            eval, _ = alphabeta(new_board, depth - 1, False, alpha, beta, get_opponent(player), heuristic)
             if eval > max_eval:
                 max_eval = eval
                 best_move = move
@@ -152,7 +166,7 @@ def alphabeta(board, depth, maximizing_player, alpha, beta, player, heuristic, R
         min_eval = float('inf')
         for move in moves:
             new_board = apply_move(board, move)
-            eval, _ = alphabeta(new_board, depth - 1, True, alpha, beta, get_opponent(player), heuristic, ROWS, COLS)
+            eval, _ = alphabeta(new_board, depth - 1, True, alpha, beta, get_opponent(player), heuristic)
             if eval < min_eval:
                 min_eval = eval
                 best_move = move
@@ -162,32 +176,36 @@ def alphabeta(board, depth, maximizing_player, alpha, beta, player, heuristic, R
         return min_eval, best_move
 
 
-def main():
-    board, ROWS, COLS = read_board()
-    heuristics = {
-        'B': HEURISTICS['B'][1],
-        'W': HEURISTICS['W'][1]
-    }
-    depth = 4
+def play_ai_vs_ai(board, depth, isMinimaxAlgorithm):
     current_player = 'B'
-
+    print_board(board)
     while True:
-        print(f"Tura gracza {current_player}")
-        print_board(board)
+        heuristic_fn = choose_adaptive_heuristic(board, current_player)
 
-        moves = generate_moves(board, current_player, ROWS, COLS)
-        if not moves:
-            print(f"Brak ruchów dla gracza {current_player}. Koniec gry.")
+        if isMinimaxAlgorithm:
+            _, move = minimax(board, depth, True, current_player, heuristic_fn)
+        else:
+            _, move = alphabeta(board, depth, True, float('-inf'), float('inf'),current_player, heuristic_fn)
+
+        if move is None:
+            print(f"No moves for player {current_player}. Game over.")
             break
 
-        _, best_move = minimax(board, depth, True, float('-inf'), float('inf'), current_player, heuristics[current_player], ROWS, COLS)
-        if best_move:
-            board = apply_move(board, best_move)
-            print(f"Gracz {current_player} wykonuje ruch: {best_move}")
-        else:
-            print("Brak możliwego ruchu!")
+        board = apply_move(board, move)
+
+        print(f"\nPlayer {current_player} makes a move: {move}")
+        print_board(board)
 
         current_player = get_opponent(current_player)
 
+
+def main():
+    board = read_board()
+    depth = 4
+    isMinimaxAlgorithm = False
+
+    play_ai_vs_ai(board, depth, isMinimaxAlgorithm)
+
+# Get-Content board.txt | python clobber.py
 if __name__ == "__main__":
     main()
