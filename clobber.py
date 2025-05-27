@@ -34,7 +34,6 @@ def apply_move(board, move):
     new_board[r1][c1] = '_'
     return new_board
 
-
 # pawn difference
 def heuristic_B_1(board, player):  
     opp = get_opponent(player)
@@ -114,8 +113,6 @@ def choose_adaptive_heuristic(board, player):
 
     return HEURISTICS[player][chosen]
 
-
-
 def minimax(board, depth, maximizing_player, player, heuristic):
     moves = generate_moves(board, player)
     if depth == 0 or not moves:
@@ -141,7 +138,6 @@ def minimax(board, depth, maximizing_player, player, heuristic):
                 min_eval = eval
                 best_move = move
         return min_eval, best_move
-
 
 def alphabeta(board, depth, maximizing_player, alpha, beta, player, heuristic):
     moves = generate_moves(board, player)
@@ -175,7 +171,6 @@ def alphabeta(board, depth, maximizing_player, alpha, beta, player, heuristic):
                 break
         return min_eval, best_move
 
-
 def play_ai_vs_ai(board, depth, isMinimaxAlgorithm):
     current_player = 'B'
     print_board(board)
@@ -185,7 +180,7 @@ def play_ai_vs_ai(board, depth, isMinimaxAlgorithm):
         if isMinimaxAlgorithm:
             _, move = minimax(board, depth, True, current_player, heuristic_fn)
         else:
-            _, move = alphabeta(board, depth, True, float('-inf'), float('inf'),current_player, heuristic_fn)
+            _, move = alphabeta(board, depth, True, float('-inf'), float('inf'), current_player, heuristic_fn)
 
         if move is None:
             print(f"No moves for player {current_player}. Game over.")
@@ -197,7 +192,6 @@ def play_ai_vs_ai(board, depth, isMinimaxAlgorithm):
         print_board(board)
 
         current_player = get_opponent(current_player)
-
 
 def main():
     board = read_board()
