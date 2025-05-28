@@ -1,0 +1,49 @@
+# General ignores for Python projects
+__pycache__/
+*.pyc
+*.pyd
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.manifest
+*.spec
+
+# Jupyter Notebook specific files
+.ipynb_checkpoints/
+*.ipynb-checkpoint
+.jupyter/
+
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# IDE and Editor related files
+.vscode/
+.history/ # VS Code Local History
+.idea/
+*.iml
+*~
+*.bak
+
+# Log and temporary files
+*.log
+*.tmp
+*.temp
+tmp/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+*.stackdump
+
+# Miscellaneous
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
