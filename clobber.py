@@ -13,12 +13,12 @@ STARTING_PLAYER_EXTENDED = PLAYER_B
 GAME_VERSION_CHOICE = "extended"
 AGENT_B_SETTINGS = {
     "algorithm_type": "alphabeta",
-    "heuristic_key": "adaptive",
+    "heuristic_key": "2",
     "depth": GAME_DEPTH
 }
 AGENT_W_SETTINGS = {
     "algorithm_type": "alphabeta",
-    "heuristic_key": "2",
+    "heuristic_key": "1",
     "depth": GAME_DEPTH
 }
 
@@ -333,5 +333,6 @@ def main():
     else:
         print("Invalid GAME_VERSION_CHOICE set in code. Choose 'basic' or 'extended'.", file=sys.stderr)
 
+# type board.txt | python clobber.py
 if __name__ == "__main__":
     main()
